@@ -67,6 +67,63 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+
+const Image = mongoose.model('Image', {
+  imageURL: String,
+  position: Number, // New field
+});
+
+app.post('/api/upload', async (req, res) => {
+  try {
+    const { imageURL, position } = req.body;
+    const image = new Image({ imageURL, position });
+    await image.save();
+    console.log('Image URL saved:', imageURL);
+    res.status(200).json({ message: 'Image URL uploaded successfully' });
+  } catch (error) {
+    console.error('Error uploading image URL:', error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.delete('/api/delete/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    await Image.findByIdAndDelete(id);
+    res.status(200).json({ message: 'Image URL deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting image URL:', error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/api/images', async (req, res) => {
+  try {
+    const images = await Image.find().sort('position');
+    res.status(200).json({ images });
+  } catch (error) {
+    console.error('Error fetching images:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+
+app.put('/api/update-positions', async (req, res) => {
+  try {
+    const { images } = req.body;
+    for (const image of images) {
+      await Image.findByIdAndUpdate(image._id, { position: image.position });
+    }
+    res.status(200).json({ message: 'Image positions updated successfully' });
+  } catch (error) {
+    console.error('Error updating image positions:', error.message);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
